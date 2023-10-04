@@ -12,11 +12,11 @@ export default (sequelize, DataTypes) => {
     }
   }
   Account.init({
-    id: { type: DataTypes.STRING, primaryKey: true },
-    first_name: DataTypes.STRING,
-    last_name: DataTypes.STRING,
-    password: DataTypes.STRING,
-    email: DataTypes.STRING
+    id: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
+    first_name: { type: DataTypes.STRING, allowNull: false },
+    last_name: { type: DataTypes.STRING, allowNull: false },
+    password: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
   }, {
     sequelize,
     timestamps: true,
