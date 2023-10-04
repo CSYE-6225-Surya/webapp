@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: CI
     runs-on: ubuntu-latest
 
     services:
@@ -33,4 +34,4 @@ jobs:
         run: npm run migrate # Replace with your actual migration command
 
       - name: Run tests
-        run: npm testing # Replace with your test command
+        run: npm test # Replace with your test command
