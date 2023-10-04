@@ -1,0 +1,15 @@
+import assignmentController from '../controllers/assignmentController';
+import userAuthentication from '../middlewares/userAuthentication';
+import healthController from '../controllers/healthController'
+
+let version = '/v1';
+let baseUrl = `${version}/assignments`;
+
+export default (app) => {
+    app.get(baseUrl, userAuthentication.authenticate, assignmentController.getAllAssignments);
+    app.get(`${baseUrl}/:id`, userAuthentication.authenticate, assignmentController.getAssignmentById);
+    app.post(baseUrl, userAuthentication.authenticate, assignmentController.createAssignment);
+    app.put(`${baseUrl}/:id`, userAuthentication.authenticate, assignmentController.updateAssignment);
+    app.delete(`${baseUrl}/:id`, userAuthentication.authenticate, assignmentController.deleteAssignment);
+    app.get('/healthz', healthController.getHealth);
+}

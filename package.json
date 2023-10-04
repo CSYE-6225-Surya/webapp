@@ -1,0 +1,42 @@
+{
+  "name": "cloud-native-application",
+  "version": "1.0.0",
+  "description": "This application is developed as part of the course Network Structures and Cloud Computing",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest health.test.js",
+    "dev": "nodemon --exec babel-node server.js",
+    "migrate": "npx sequelize db:migrate"
+  },
+  "author": "Sai Surya Teja Swami",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/node": "^7.22.19",
+    "@babel/preset-env": "^7.22.20",
+    "@babel/register": "^7.22.15",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "csv": "^6.3.3",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "moment": "^2.29.4",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3",
+    "pino": "^8.15.4",
+    "sequelize": "^6.33.0",
+    "sequelize-cli": "^6.6.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "setupFiles": [
+      "./src/tests/setupTests.js"
+    ]
+  }
+}
