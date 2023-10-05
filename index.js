@@ -24,7 +24,7 @@ app.use(globalErrorMiddleware.globalErrorHandler);
 
 let userDetails = [];
 
-fs.createReadStream("./../user.csv")
+fs.createReadStream("./src/files/user.csv")
     .pipe(parse({ delimiter: ",", from_line: 2 }))
     .on("data", function (row) {
         userDetails.push(row);
