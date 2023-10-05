@@ -20,12 +20,11 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(identifyRoute);
 app.use(globalErrorMiddleware.globalErrorHandler);
 
 let userDetails = [];
 
-fs.createReadStream("./src/files/sm.csv")
+fs.createReadStream("./../user.csv")
     .pipe(parse({ delimiter: ",", from_line: 2 }))
     .on("data", function (row) {
         userDetails.push(row);

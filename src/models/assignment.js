@@ -15,7 +15,7 @@ export default (sequelize, DataTypes) => {
     name: { type: DataTypes.STRING, allowNull: false },
     points: { type: DataTypes.INTEGER, allowNull: false },
     num_of_attempts: { type: DataTypes.INTEGER, allowNull: false },
-    deadline: { type: DataTypes.STRING, allowNull: false },
+    deadline: { type: DataTypes.DATE, allowNull: false },
     userId: { type: DataTypes.STRING, allowNull: false }
   }, {
     sequelize,

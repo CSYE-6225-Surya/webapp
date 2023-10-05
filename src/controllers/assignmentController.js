@@ -13,18 +13,18 @@ const getAllAssignments = async (req, res) => {
         assignmentDetails = await Assignment.findAll();
     } catch (err) {
         logger.error(err.message, 'Assignment Controller: getAllAssignments', 10);
-        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 503, null);
-        res.status(apiResponse.status).send(apiResponse);
+        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
+        res.status(apiResponse.status).send();
         return;
     }
     if (!check.isEmpty(assignmentDetails)) {
         let apiResponse = response.generate(false, 'Assignments Found', 200, assignmentDetails);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send(assignmentDetails);
         return;
     } else {
         logger.info('No Assignments Found', 'Assignment Controller:getAllAssignments')
         let apiResponse = response.generate(true, 'No Assignments Found', 404, null);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
 };
@@ -36,25 +36,25 @@ const getAssignmentById = async (req, res) => {
         assignmentId = req.params.id;
     } else {
         let apiResponse = response.generate(true, 'Missing ID Parameter', 400, null);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
     try {
         assignmentDetails = await Assignment.findOne({ where: { id: assignmentId } });
     } catch (err) {
         logger.error(err.message, 'Assignment Controller: getAssignmentById', 10);
-        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 503, null);
-        res.status(apiResponse.status).send(apiResponse);
+        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
+        res.status(apiResponse.status).send();
         return;
     }
     if (!check.isEmpty(assignmentDetails)) {
         let apiResponse = response.generate(false, 'Assignment Details Found', 200, assignmentDetails);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send(assignmentDetails);
         return;
     } else {
         logger.info('No Assignment Found', 'Assignment Controller:getAssignmentById')
         let apiResponse = response.generate(true, 'No Assignment Found', 404, null);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
 };
@@ -63,16 +63,21 @@ let assignmentCreateFunction = async (req, res) => {
 
     let { name, points, num_of_attempts, deadline } = req.body;
 
+    if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
+
     let userEmail = userAuthentication.getUserEmail(req, res);
 
     if (!name || !points || !num_of_attempts || !deadline) {
         let apiResponse = response.generate(true, 'Missing Parameters in Body', 400, null)
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
     if (!(points > 0 && points <= 10)) {
         let apiResponse = response.generate(true, 'Points are not in range for assignment', 400, null)
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
     let createAssignment = async () => {
@@ -87,14 +92,12 @@ let assignmentCreateFunction = async (req, res) => {
                 newAssignment['num_of_attempts'] = num_of_attempts;
                 newAssignment.deadline = deadline;
                 newAssignment.userId = userEmail;
-                newAssignment.assignment_created = Date.now();
-                newAssignment.assignment_updated = Date.now();
                 try {
                     await Assignment.create(newAssignment);
                 } catch (err) {
                     console.log(err)
                     logger.error(err.message, 'assignmentController: createAssignment', 10)
-                    let apiResponse = response.generate(true, 'Failed to create new Assignment', 503, null)
+                    let apiResponse = response.generate(true, 'Failed to create new Assignment', 400, null)
                     reject(apiResponse)
                 }
                 resolve(newAssignment);
@@ -110,12 +113,12 @@ let assignmentCreateFunction = async (req, res) => {
 
     createAssignment(req, res)
         .then((resolve) => {
-            let apiResponse = response.generate(false, 'Assignment Created', 200, resolve)
-            res.send(apiResponse)
+            let apiResponse = response.generate(false, 'Assignment Created', 201, resolve);
+            res.status(apiResponse.status).send(resolve);
         })
         .catch((err) => {
             console.log(err);
-            res.send(err);
+            res.status(err.status ? err.status : 400).send();
         })
 
 }
@@ -125,6 +128,10 @@ const updateAssignment = async (req, res) => {
     let assignmentId;
     let updatedDetails;
     let userEmail = userAuthentication.getUserEmail(req, res);
+    if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
     Object.keys(req.body).map((key) => {
         if (key.toLowerCase().includes('assignment_created')) {
             delete req.body.assignment_created;
@@ -141,7 +148,7 @@ const updateAssignment = async (req, res) => {
         if (key.toLowerCase().includes('points')) {
             if (!(req.body.points > 0 && req.body.points <= 10)) {
                 let apiResponse = response.generate(true, 'Points are not in range for assignment', 400, null)
-                res.status(apiResponse.status).send(apiResponse);
+                res.status(apiResponse.status).send();
                 return;
             }
         }
@@ -157,7 +164,7 @@ const updateAssignment = async (req, res) => {
         assignmentDetails = await Assignment.findOne({ where: { id: assignmentId } });
     } catch (err) {
         logger.error(err.message, 'Assignment Controller: getAssignmentById', 10);
-        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 503, null);
+        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
         res.status(apiResponse.status).send();
         return;
     }
@@ -166,7 +173,7 @@ const updateAssignment = async (req, res) => {
             try {
                 updatedDetails = await Assignment.update(req.body, { where: { id: req.params.id } });
             } catch (err) {
-                let apiResponse = response.generate(true, 'Failed to update Assignment', 503, null)
+                let apiResponse = response.generate(true, 'Failed to update Assignment', 400, null)
                 res.status(apiResponse.status).send();
                 return;
             }
@@ -175,7 +182,7 @@ const updateAssignment = async (req, res) => {
             res.status(apiResponse.status).send();
             return;
         }
-        let apiResponse = response.generate(false, 'Assignment Details Updated', 200, updatedDetails);
+        let apiResponse = response.generate(false, 'Assignment Details Updated', 204, updatedDetails);
         res.status(apiResponse.status).send();
         return;
     } else {
@@ -206,7 +213,7 @@ const deleteAssignment = async (req, res) => {
         assignmentDetails = await Assignment.findOne({ where: { id: assignmentId } });
     } catch (err) {
         logger.error(err.message, 'Assignment Controller: getAssignmentById', 10);
-        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 503, null);
+        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
         res.status(apiResponse.status).send();
         return;
     }
@@ -215,7 +222,7 @@ const deleteAssignment = async (req, res) => {
             try {
                 await Assignment.destroy({ where: { id: req.params.id } });
             } catch (err) {
-                let apiResponse = response.generate(true, 'Failed to delete Assignment', 503, null)
+                let apiResponse = response.generate(true, 'Failed to delete Assignment', 400, null)
                 res.status(apiResponse.status).send();
                 return;
             }

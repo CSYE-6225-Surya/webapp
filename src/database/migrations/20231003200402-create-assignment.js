@@ -8,18 +8,23 @@ export default {
         type: Sequelize.STRING
       },
       name: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       points: {
+        allowNull: false,
         type: Sequelize.INTEGER
       },
       num_of_attempts: {
+        allowNull: false,
         type: Sequelize.INTEGER
       },
       deadline: {
-        type: Sequelize.STRING
+        allowNull: false,
+        type: Sequelize.DATE
       },
       userId: {
+        allowNull: false,
         type: Sequelize.STRING
       },
       assignment_created: {
