@@ -19,8 +19,5 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run database migrations
-        run: npm run migrate # Replace with your actual migration command
-
       - name: Run tests
         run: npm test # Replace with your test command
