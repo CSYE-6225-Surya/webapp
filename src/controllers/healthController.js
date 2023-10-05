@@ -13,7 +13,10 @@ const getHealth = (req, res) => {
     } else if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
-    } else if (typeof req.query == 'object' && Object.keys(req.query).length !== 0) {
+    } else if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    } else if (req.url !== '/healthz') {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     } else {
