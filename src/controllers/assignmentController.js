@@ -8,6 +8,11 @@ import userAuthentication from '../middlewares/userAuthentication';
 const { Assignment } = model;
 
 const getAllAssignments = async (req, res) => {
+    if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
+        let apiResponse = response.generate(true, 'No Body Expected', 400, null);
+        res.status(apiResponse.status).send();
+        return;
+    }
     let assignmentDetails;
     try {
         assignmentDetails = await Assignment.findAll();
@@ -30,6 +35,11 @@ const getAllAssignments = async (req, res) => {
 };
 
 const getAssignmentById = async (req, res) => {
+    if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
+        let apiResponse = response.generate(true, 'No Body Expected', 400, null);
+        res.status(apiResponse.status).send();
+        return;
+    }
     let assignmentDetails;
     let assignmentId;
     if (req.params.id) {
