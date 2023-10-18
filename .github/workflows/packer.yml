@@ -30,7 +30,7 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Set up Packer
-        uses: hashicorp/setup-packer@v1
+        uses: hashicorp/setup-packer@v2
 
       - name: Packer build
         run: |
