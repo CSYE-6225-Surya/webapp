@@ -26,7 +26,7 @@ variable "instance_type" {
 
 variable "zip_file_name" {
   type    = string
-  default = "../../webapp.zip"
+  default = ""
 }
 
 source "amazon-ebs" "my-debian" {
