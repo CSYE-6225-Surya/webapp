@@ -28,9 +28,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 14 # Use the desired Node.js version
+          node-version: 18 # Use the desired Node.js version
 
       - name: Install dependencies
         run: npm install
