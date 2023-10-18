@@ -57,7 +57,7 @@ build {
       "sudo apt-get install nginx -y",
       "sudo apt-get install unzip -y",
       "sudo apt-get install dos2unix -y",
-      "sudo unzip webapp.zip",
+      "sudo unzip webapp.zip -d webapp",
       "ls -l",
       "sudo chmod 755 /opt/webapp",
       "cd /opt/webapp",
