@@ -14,9 +14,9 @@ jobs:
       postgresql:
         image: postgres:13 # Use the PostgreSQL Docker image
         env:
-          POSTGRES_USER: postgres # Replace with your PostgreSQL username
-          POSTGRES_PASSWORD: 1234 # Replace with your PostgreSQL password
-          POSTGRES_DB: cloud-db # Replace with your PostgreSQL database name
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }} # Replace with your PostgreSQL username
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }} # Replace with your PostgreSQL password
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }} # Replace with your PostgreSQL database name
         ports:
           - 5432:5432 # Map container port 5432 to host port 5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
