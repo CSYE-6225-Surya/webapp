@@ -12,9 +12,34 @@ jobs:
     name: Packer build job
     runs-on: ubuntu-latest
 
+    services:
+      postgresql:
+        image: postgres:13 # Use the PostgreSQL Docker image
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }} # Replace with your PostgreSQL username
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }} # Replace with your PostgreSQL password
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }} # Replace with your PostgreSQL database name
+        ports:
+          - 5432:5432 # Map container port 5432 to host port 5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      - name: Setup Node
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14 # Use the desired Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run database migrations
+        run: npm run migrate # Replace with your actual migration command
+
+      - name: Run tests
+        run: npm test # Replace with your test command
       
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4 # v4.0.0
