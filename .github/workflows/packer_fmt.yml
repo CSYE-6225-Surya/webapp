@@ -1,0 +1,39 @@
+name: Packer Fmt and Validate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: packer check fmt and validate
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Packer
+      uses: hashicorp/setup-packer@main
+      with:
+        version: latest
+
+    - name: Initialize Packer
+      run: packer init aws-debian.pkr.hcl
+
+    - name: Format Packer Config
+      run: packer fmt aws-debian.pkr.hcl
+      id: fmt
+
+    - name: Check for Formatting Changes
+      run: |
+        CHANGES=$(git diff --name-only)
+        if [[ -n "$CHANGES" ]]; then
+          echo "Packer format check failed. The following files have formatting changes:"
+          echo "$CHANGES"
+          exit 1
+        fi
+
+    - name: Validate Packer Config
+      run: packer validate aws-debian.pkr.hcl

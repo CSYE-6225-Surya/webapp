@@ -1,3 +1,12 @@
+packer {
+  required_plugins {
+    amazon = {
+      source  = "github.com/hashicorp/amazon"
+      version = ">= 1.0.0"
+    }
+  }
+}
+
 variable "source_ami" {
   default = "ami-06db4d78cb1d3bbf9" # Replace with the correct Debian AMI ID.
 }
