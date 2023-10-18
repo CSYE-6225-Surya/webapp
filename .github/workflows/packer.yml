@@ -23,8 +23,8 @@ jobs:
 
       - name: Zip web application
         run: |
-          cd ..
-          zip -r webapp.zip .
+          cd webapp
+          zip -r ../webapp.zip .
         working-directory: ${{ github.workspace }}
 
       - name: Set up Packer
