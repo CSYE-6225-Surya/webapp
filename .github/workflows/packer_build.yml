@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4 # v4.0.0
@@ -40,9 +40,10 @@ jobs:
 
       - name: Packer build
         run: |
-          packer build -var 'source_ami=ami-06db4d78cb1d3bbf9' \
-                      -var 'subnet_id=subnet-02576640128d84c5c' \
-                      -var 'instance_type=t2.micro' \
+          packer build -var 'source_ami=$SOURCE_AMI' \
+                      -var 'subnet_id=$SUBNET_ID' \
+                      -var 'instance_type=$INSTANCE_TYPE' \
+                      -var 'region=$REGION' \
                       -var 'zip_file_name=${{ github.workspace }}/webapp.zip' \
                       aws-debian.pkr.hcl
         working-directory: ${{ github.workspace }}

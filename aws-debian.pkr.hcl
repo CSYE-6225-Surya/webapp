@@ -8,20 +8,23 @@ packer {
 }
 
 variable "source_ami" {
-  default = "ami-06db4d78cb1d3bbf9" # Replace with the correct Debian AMI ID.
+  type    = string
+  default = "ami-06db4d78cb1d3bbf9"
 }
 
 variable "region" {
-  default = "us-east-1" # Replace with your desired AWS region.
+  type    = string
+  default = "us-east-1"
 }
 
 variable "subnet_id" {
   type    = string
-  default = "subnet-02576640128d84c5c" # Replace with your desired AWS region.
+  default = "subnet-02576640128d84c5c"
 }
 
 variable "instance_type" {
-  default = "t2.micro" # Change the instance type if needed.
+  type    = string
+  default = "t2.micro"
 }
 
 variable "zip_file_name" {
@@ -33,11 +36,11 @@ source "amazon-ebs" "my-debian" {
   ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   ami_description = "AMI for CSYE 6225"
   ami_users       = ["912764834865", "889150626858"]
-  source_ami      = var.source_ami
-  instance_type   = var.instance_type
-  ssh_username    = "admin" # Change the SSH username as needed for the AMI.
-  subnet_id       = var.subnet_id
-  region          = var.region
+  source_ami      = "${var.source_ami}"
+  instance_type   = "${var.instance_type}"
+  ssh_username    = "admin"
+  subnet_id       = "${var.subnet_id}"
+  region          = "${var.region}"
   ami_regions = [
     "us-east-1",
   ]
@@ -50,7 +53,7 @@ source "amazon-ebs" "my-debian" {
 build {
   sources = ["source.amazon-ebs.my-debian"]
   provisioner "file" {
-    source      = var.zip_file_name
+    source      = "${var.zip_file_name}"
     destination = "/tmp/webapp.zip"
   }
   provisioner "shell" {
