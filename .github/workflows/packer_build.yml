@@ -40,6 +40,9 @@ jobs:
 
       - name: Run tests
         run: npm test # Replace with your test command
+
+      - name: Delete Node Modules
+        run: rm -rf node_modules
       
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4 # v4.0.0
