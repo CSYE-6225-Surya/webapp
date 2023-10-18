@@ -1,0 +1,33 @@
+name: Packer Build
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  packer-build:
+    name: 'Packer build job'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Zip web application
+        run: |
+          cd ..
+          zip -r webapp.zip webapp
+        working-directory: ${{ github.workspace }}
+
+      - name: Set up Packer
+        uses: hashicorp/setup-packer@v1
+
+      - name: Packer build
+        run: |
+          packer build -var 'source_ami=ami-06db4d78cb1d3bbf9' \
+                      -var 'subnet_id=subnet-02576640128d84c5c' \
+                      -var 'instance_type=t2.micro' \
+                      -var 'zip_file_name=webapp.zip' \
+                      aws-debian.pkr.hcl
+        working-directory: ${{ github.workspace }}
