@@ -73,6 +73,7 @@ build {
       "sudo chmod +x installation.sh",
       "sudo dos2unix installation.sh",
       "./installation.sh",
+      "sudo apt-get remove git -y",
       "sudo apt-get clean",
     ]
   }
