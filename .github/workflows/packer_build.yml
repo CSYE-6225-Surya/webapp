@@ -54,7 +54,7 @@ jobs:
       - name: Zip web application
         run: |
           cd ${{ github.workspace }}
-          zip -r webapp.zip .
+          zip -r webapp.zip . -x ".git/*" 
           ls -l
         working-directory: ${{ github.workspace }}
 
