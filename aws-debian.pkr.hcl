@@ -25,14 +25,14 @@ variable "instance_type" {
 }
 
 variable "zip_file_name" {
-    type = string
-    default = "../../webapp.zip"
+  type    = string
+  default = "../../webapp.zip"
 }
 
 source "amazon-ebs" "my-debian" {
   ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   ami_description = "AMI for CSYE 6225"
-  ami_users = ["912764834865", "889150626858"]
+  ami_users       = ["912764834865", "889150626858"]
   source_ami      = var.source_ami
   instance_type   = var.instance_type
   ssh_username    = "admin" # Change the SSH username as needed for the AMI.
