@@ -40,10 +40,10 @@ jobs:
 
       - name: Packer build
         run: |
-          packer build -var 'source_ami=${{ env.SOURCE_AMI }}' \
-                      -var 'subnet_id=${{ env.SUBNET_ID }}' \
-                      -var 'instance_type=${{ env.INSTANCE_TYPE }}' \
-                      -var 'region=${{ env.REGION }}' \
+          packer build -var 'source_ami=${{ vars.SOURCE_AMI }}' \
+                      -var 'subnet_id=${{ vars.SUBNET_ID }}' \
+                      -var 'instance_type=${{ vars.INSTANCE_TYPE }}' \
+                      -var 'region=${{ vars.REGION }}' \
                       -var 'zip_file_name=${{ github.workspace }}/webapp.zip' \
                       aws-debian.pkr.hcl
         working-directory: ${{ github.workspace }}
