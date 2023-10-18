@@ -58,6 +58,7 @@ build {
       "sudo apt-get install unzip -y",
       "sudo apt-get install dos2unix -y",
       "sudo unzip webapp.zip",
+      "ls -l",
       "sudo chmod 755 /opt/webapp",
       "cd /opt/webapp",
       "sudo chmod +x installation.sh",
