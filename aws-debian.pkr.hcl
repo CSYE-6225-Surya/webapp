@@ -32,6 +32,21 @@ variable "zip_file_name" {
   default = ""
 }
 
+variable "block_device_name" {
+  type    = string
+  default = "/dev/xvda"
+}
+
+variable "volume_size" {
+  type    = string
+  default = "25"
+}
+
+variable "volume_type" {
+  type    = string
+  default = "gp2"
+}
+
 source "amazon-ebs" "my-debian" {
   ami_name        = "csye6225_${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   ami_description = "AMI for CSYE 6225"
@@ -47,6 +62,12 @@ source "amazon-ebs" "my-debian" {
   aws_polling {
     delay_seconds = 120
     max_attempts  = 50
+  }
+  launch_block_device_mappings {
+    delete_on_termination = true
+    device_name           = "${var.block_device_name}"
+    volume_size           = "${var.volume_size}"
+    volume_type           = "${var.volume_type}"
   }
 }
 

@@ -72,6 +72,9 @@ jobs:
                       -var 'subnet_id=${{ vars.SUBNET_ID }}' \
                       -var 'instance_type=${{ vars.INSTANCE_TYPE }}' \
                       -var 'region=${{ vars.REGION }}' \
+                      -var 'block_device_name=${{ vars.BLOCK_DEVICE_NAME }}' \
+                      -var 'volume_size=${{ vars.VOLUME_SIZE }}' \
+                      -var 'volume_type=${{ vars.VOLUME_TYPE }}' \
                       -var 'zip_file_name=${{ github.workspace }}/webapp.zip' \
                       aws-debian.pkr.hcl
         working-directory: ${{ github.workspace }}
