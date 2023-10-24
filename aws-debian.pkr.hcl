@@ -7,7 +7,7 @@ packer {
   }
 }
 
-variable "source_ami" {
+  variable "source_ami" {
   type    = string
   default = "ami-06db4d78cb1d3bbf9"
 }
