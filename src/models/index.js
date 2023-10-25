@@ -8,22 +8,12 @@ const env = process.env.NODE_ENV || 'development';
 const config = enVariables[env];
 const db = {};
 
-const db_username = process.env.DB_USER || config.username;
-const db_password = process.env.DB_PASSWORD || config.password;
-const db_name = process.env.DB_NAME || config.database;
-const db_port = process.env.DB_PORT || config.port;
-const db_host = process.env.DB_HOST || config.host;
-const dialect = config.dialect;
-let newConfig = {
-  username: db_username,
-  password: db_password,
-  database: db_name,
-  port: db_port,
-  host: db_host,
-  dialect: dialect
-}
 let sequelize;
-sequelize = new Sequelize(db_name, db_username, db_password, newConfig);
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
 
 fs
   .readdirSync(__dirname)
