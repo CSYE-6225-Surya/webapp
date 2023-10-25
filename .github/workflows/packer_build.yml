@@ -9,6 +9,7 @@ on:
 
 jobs:
   packer-build:
+    if: github.event.pull_request.merged == true
     name: Packer build job
     runs-on: ubuntu-latest
 
