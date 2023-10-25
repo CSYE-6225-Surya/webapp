@@ -15,20 +15,20 @@ nvm use 18
 sudo apt update
 
 # Install PostgreSQL
-sudo apt-get install -y postgresql postgresql-contrib
+# sudo apt-get install -y postgresql postgresql-contrib
 sudo apt-get install -y npm
 
 # Start PostgreSQL service and enable it on boot
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
+# sudo systemctl start postgresql
+# sudo systemctl enable postgresql
 
 # Install Sequelize CLI
 sudo npm install -g sequelize-cli
 
 # Create and Alter PostgreSQL user and database
-POSTGRES_PASSWORD="1234"
-sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$POSTGRES_PASSWORD';"
-sudo -u postgres createdb cloud-db
+# POSTGRES_PASSWORD="1234"
+# sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$POSTGRES_PASSWORD';"
+# sudo -u postgres createdb cloud-db
 
 # Change directory to your project
 # Example: cd yourproject
