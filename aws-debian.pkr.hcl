@@ -93,7 +93,6 @@ build {
       "cd /opt",
       "sudo apt-get update",
       "sudo apt-get upgrade -y",
-      "sudo apt-get install nginx -y",
       "sudo apt-get install unzip -y",
       "sudo apt-get install dos2unix -y",
       "sudo unzip webapp.zip -d webapp",
