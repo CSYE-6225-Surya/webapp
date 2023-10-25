@@ -36,7 +36,6 @@ sudo -u postgres createdb cloud-db
 sudo npm install
 
 # Run Sequelize migrations
-sequelize db:migrate
 
 # Start your Node.js application
 # Example: npm start
