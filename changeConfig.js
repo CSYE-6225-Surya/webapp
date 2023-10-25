@@ -1,4 +1,7 @@
 const fs = require('fs');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 // Read the JSON file
 const configFile = './src/config/config.json';
