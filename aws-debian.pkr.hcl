@@ -77,6 +77,12 @@ build {
     source      = "${var.zip_file_name}"
     destination = "/tmp/webapp.zip"
   }
+
+  provisioner "file" {
+    source      = "./webapp.service"
+    destination = "/tmp/webapp.service"
+  }
+
   provisioner "shell" {
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive",
@@ -98,6 +104,7 @@ build {
       "sudo dos2unix installation.sh",
       "./installation.sh",
       "sudo apt-get remove git -y",
+      "sudo mv /tmp/webapp.service /etc/systemd/system/webapp.service",
       "sudo apt-get clean",
     ]
   }
