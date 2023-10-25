@@ -38,7 +38,22 @@ fs.createReadStream("./src/files/user.csv")
         console.log(error.message);
     });
 
-const sequalize = new Sequelize(config["development"]);
+const db_username = process.env.DB_USER || config["development"].username;
+const db_password = process.env.DB_PASSWORD || config["development"].password;
+const db_name = process.env.DB_NAME || config["development"].database;
+const db_port = process.env.DB_PORT || config["development"].port;
+const db_host = process.env.DB_HOST || config["development"].host;
+const dialect = config["development"].dialect;
+
+
+const sequalize = new Sequelize({
+    username: db_username,
+    password: db_password,
+    database: db_name,
+    port: db_port,
+    host: db_host,
+    dialect: dialect,
+});
 
 app.all('*', function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -56,6 +71,7 @@ const port = 3000;
 sequalize.authenticate()
     .then(() => {
         console.log('Connected to PostgreSQL');
+        sequalize.sync({ force: true });
     })
     .catch(err => {
         console.log(err);
