@@ -1,5 +1,5 @@
 # webapp
-NodeJS repository to run csye 6225 api calls 
+NodeJS repository to run csye 6225 api calls  
 
 1. ssh: ssh -i /Users/saisu/.ssh/digitalocean root@ip
 
