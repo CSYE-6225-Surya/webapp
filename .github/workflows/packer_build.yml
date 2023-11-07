@@ -12,6 +12,9 @@ jobs:
     if: github.event.pull_request.merged == true
     name: Packer build job
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: workflow
+      GITHUB_WORKSPACE: ${{ github.workspace }}
 
     services:
       postgresql:
