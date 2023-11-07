@@ -35,6 +35,35 @@ sudo npm install -g sequelize-cli
 # Install project dependencies
 sudo npm install
 
+# Download and install the CloudWatch Agent
+curl -O https://amazoncloudwatch-agent.s3.amazonaws.com/debian/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i amazon-cloudwatch-agent.deb
+rm -f amazon-cloudwatch-agent.deb
+
+# Configure the CloudWatch Agent
+cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+{
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                    {
+                        "file_path": "/opt/logs/log-file.log",
+                        "log_group_name": "assignments-log-group",
+                        "log_stream_name": "assignments-log-stream",
+                        "timezone": "UTC"
+                    }
+                ]
+            }
+        }
+    }
+}
+EOF
+
+# Start the CloudWatch Agent
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m onPremise -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+service amazon-cloudwatch-agent start
+
 # Run Sequelize migrations
 
 # Start your Node.js application
