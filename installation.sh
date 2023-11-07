@@ -36,7 +36,8 @@ sudo npm install -g sequelize-cli
 sudo npm install
 
 # Download and install the CloudWatch Agent
-wget https://amazoncloudwatch-agent.s3.amazonaws.com/debian/amd64/latest/amazon-cloudwatch-agent.deb
+cd ~
+sudo wget https://amazoncloudwatch-agent.s3.amazonaws.com/debian/amd64/latest/amazon-cloudwatch-agent.deb
 sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 sudo rm -f ./amazon-cloudwatch-agent.deb
 

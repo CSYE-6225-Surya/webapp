@@ -104,7 +104,7 @@ build {
       "cd /opt/webapp",
       "sudo chmod +x installation.sh",
       "sudo dos2unix installation.sh",
-      "./installation.sh",
+      "sudo ./installation.sh",
       "sudo apt-get remove git -y",
       "sudo mv /tmp/webapp.service /etc/systemd/system/webapp.service",
       "sudo apt-get clean",
