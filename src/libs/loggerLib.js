@@ -8,7 +8,7 @@ let logFilePath;
 
 if (process.env.NODE_ENV === 'workflow') {
     // Set the log file path for GitHub Workflows
-    logFilePath = '/github/workspace/log-file.log';
+    logFilePath = `${process.env.GITHUB_WORKSPACE}/log-file.log`;
 } else {
     // Set the log file path for local development or other environments
     logFilePath = '../../logs/log-file.log';
