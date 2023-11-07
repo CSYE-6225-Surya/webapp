@@ -37,8 +37,8 @@ sudo npm install
 
 # Download and install the CloudWatch Agent
 wget https://amazoncloudwatch-agent.s3.amazonaws.com/debian/amd64/latest/amazon-cloudwatch-agent.deb
-sudo dpkg -i amazon-cloudwatch-agent.deb
-rm -f amazon-cloudwatch-agent.deb
+sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+sudo rm -f ./amazon-cloudwatch-agent.deb
 
 # Configure the CloudWatch Agent
 cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
