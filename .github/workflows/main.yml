@@ -9,6 +9,8 @@ jobs:
   build:
     name: Check Success Test Case
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: workflow
 
     services:
       postgresql:

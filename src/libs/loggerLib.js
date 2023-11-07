@@ -2,9 +2,27 @@
 // const logger = require('pino')()
 // const moment = require('moment')
 
-import Logger from 'pino';
+import pino from 'pino';
 import moment from 'moment';
-const logger = Logger();
+let logFilePath;
+
+if (process.env.NODE_ENV === 'workflow') {
+    // Set the log file path for GitHub Workflows
+    logFilePath = '/github/workspace/log-file.log';
+} else {
+    // Set the log file path for local development or other environments
+    logFilePath = '../../logs/log-file.log';
+}
+const logger = pino({
+    level: process.env.PINO_LOG_LEVEL || 'info',
+    // formatters: {
+    //   level: (label) => {
+    //     return { level: label.toUpperCase() };
+    //   },
+    // },
+    // timestamp: pino.stdTimeFunctions.isoTime,
+},
+    pino.destination(logFilePath));
 // myErrorFunction is a definition of how the errors will be formatted in our system
 let captureError = (errorMessage, errorOrigin, errorLevel) => {
     let currentTime = moment()
