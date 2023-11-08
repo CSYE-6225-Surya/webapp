@@ -11,7 +11,7 @@ if (process.env.NODE_ENV === 'workflow') {
     logFilePath = `${process.env.GITHUB_WORKSPACE}/log-file.log`;
 } else {
     // Set the log file path for local development or other environments
-    logFilePath = '/opt/logs/log-file.log';
+    logFilePath = '/opt/webapp/src/logs/log-file.log';
 }
 const logger = pino({
     level: process.env.PINO_LOG_LEVEL || 'info',

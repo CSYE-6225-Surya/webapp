@@ -91,7 +91,6 @@ build {
     inline = [
       "sudo groupadd csye6225group",
       "sudo useradd -s /bin/false -g csye6225group -d /opt -m csye6225user",
-      "sudo chown -R csye6225user:csye6225group /opt",
       "sudo mv /tmp/webapp.zip /opt/webapp.zip",
       "cd /opt",
       "sudo apt-get update",
@@ -108,6 +107,7 @@ build {
       "sudo apt-get remove git -y",
       "sudo mv /tmp/webapp.service /etc/systemd/system/webapp.service",
       "sudo apt-get clean",
+      "sudo chown -R csye6225user:csye6225group /opt",
     ]
   }
 }
