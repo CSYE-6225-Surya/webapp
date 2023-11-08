@@ -42,28 +42,28 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 sudo rm -f ./amazon-cloudwatch-agent.deb
 
 # Configure the CloudWatch Agent
-cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-{
-    "logs": {
-        "logs_collected": {
-            "files": {
-                "collect_list": [
-                    {
-                        "file_path": "/opt/logs/log-file.log",
-                        "log_group_name": "assignments-log-group",
-                        "log_stream_name": "assignments-log-stream",
-                        "timezone": "UTC"
-                    }
-                ]
-            }
-        }
-    }
-}
-EOF
+# cat << EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+# {
+#     "logs": {
+#         "logs_collected": {
+#             "files": {
+#                 "collect_list": [
+#                     {
+#                         "file_path": "/opt/logs/log-file.log",
+#                         "log_group_name": "assignments-log-group",
+#                         "log_stream_name": "assignments-log-stream",
+#                         "timezone": "UTC"
+#                     }
+#                 ]
+#             }
+#         }
+#     }
+# }
+# EOF
 
 # Start the CloudWatch Agent
-/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m onPremise -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-service amazon-cloudwatch-agent start
+# /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m onPremise -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+# service amazon-cloudwatch-agent start
 
 # Run Sequelize migrations
 
