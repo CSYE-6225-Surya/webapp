@@ -4,10 +4,12 @@ import response from '../libs/responseLib';
 import check from '../libs/checkLib';
 import logger from '../libs/loggerLib';
 import userAuthentication from '../middlewares/userAuthentication';
+import client from '../libs/statsdLib';
 
 const { Assignment } = model;
 
 const getAllAssignments = async (req, res) => {
+    client.increment('getAllAssignments');
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
@@ -35,6 +37,7 @@ const getAllAssignments = async (req, res) => {
 };
 
 const getAssignmentById = async (req, res) => {
+    client.increment('getAssignmentById');
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
@@ -70,6 +73,7 @@ const getAssignmentById = async (req, res) => {
 };
 
 let assignmentCreateFunction = async (req, res) => {
+    client.increment('createAssignments');
 
     let { name, points, num_of_attempts, deadline } = req.body;
 
@@ -134,6 +138,7 @@ let assignmentCreateFunction = async (req, res) => {
 }
 
 const updateAssignment = async (req, res) => {
+    client.increment('updateAssignments');
     let assignmentDetails;
     let assignmentId;
     let updatedDetails;
@@ -204,6 +209,7 @@ const updateAssignment = async (req, res) => {
 };
 
 const deleteAssignment = async (req, res) => {
+    client.increment('deleteAssignments');
     let assignmentDetails;
     let assignmentId;
     let userEmail = userAuthentication.getUserEmail(req, res);
