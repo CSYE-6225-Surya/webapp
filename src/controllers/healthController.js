@@ -6,6 +6,7 @@ const sequelize = new Sequelize(config["development"]);
 
 const getHealth = (req, res) => {
     client.increment('healthz');
+    client.close();
     if (typeof req.body == 'object' && Object.keys(req.body).length !== 0) {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
