@@ -178,7 +178,7 @@ const updateAssignment = async (req, res) => {
     try {
         assignmentDetails = await Assignment.findOne({ where: { id: assignmentId } });
     } catch (err) {
-        logger.error(err.message, 'Assignment Controller: getAssignmentById', 10);
+        logger.error(err.message, 'Assignment Controller: editAssignment', 10);
         let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -188,11 +188,13 @@ const updateAssignment = async (req, res) => {
             try {
                 updatedDetails = await Assignment.update(req.body, { where: { id: req.params.id } });
             } catch (err) {
+                logger.error(err.message, 'Assignment Controller:editAssignment', 10)
                 let apiResponse = response.generate(true, 'Failed to update Assignment', 400, null)
                 res.status(apiResponse.status).send();
                 return;
             }
         } else {
+            logger.error('No Permissions for this user to edit this assignment', 'Assignment Controller:editAssignment', 10)
             let apiResponse = response.generate(true, 'No Permissions for this user to edit this assignment', 403, null);
             res.status(apiResponse.status).send();
             return;
@@ -201,7 +203,7 @@ const updateAssignment = async (req, res) => {
         res.status(apiResponse.status).send();
         return;
     } else {
-        logger.info('No Assignment Found', 'Assignment Controller:getAssignmentById')
+        logger.info('No Assignment Found', 'Assignment Controller:editAssignment')
         let apiResponse = response.generate(true, 'No Assignment Found', 404, null);
         res.status(apiResponse.status).send();
         return;
@@ -228,7 +230,7 @@ const deleteAssignment = async (req, res) => {
     try {
         assignmentDetails = await Assignment.findOne({ where: { id: assignmentId } });
     } catch (err) {
-        logger.error(err.message, 'Assignment Controller: getAssignmentById', 10);
+        logger.error(err.message, 'Assignment Controller: deleteAssignment', 10);
         let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -238,11 +240,13 @@ const deleteAssignment = async (req, res) => {
             try {
                 await Assignment.destroy({ where: { id: req.params.id } });
             } catch (err) {
+                logger.error(err.message, 'Assignment Controller: deleteAssignment', 10);
                 let apiResponse = response.generate(true, 'Failed to delete Assignment', 400, null)
                 res.status(apiResponse.status).send();
                 return;
             }
         } else {
+            logger.error('No Permissions for this user to delete this assignment', 'Assignment Controller: deleteAssignment', 10);
             let apiResponse = response.generate(true, 'No Permissions for this user to delete this assignment', 403, null);
             res.status(apiResponse.status).send();
             return;
@@ -251,7 +255,7 @@ const deleteAssignment = async (req, res) => {
         res.status(apiResponse.status).send();
         return;
     } else {
-        logger.info('No Assignment Found', 'Assignment Controller:getAssignmentById')
+        logger.info('No Assignment Found', 'Assignment Controller:deleteAssignment')
         let apiResponse = response.generate(true, 'No Assignment Found', 404, null);
         res.status(apiResponse.status).send();
         return;
