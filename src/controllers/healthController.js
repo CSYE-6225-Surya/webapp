@@ -1,9 +1,11 @@
 import { Sequelize } from 'sequelize';
 import config from '../config/config.json';
+import client from '../libs/statsdLib';
 
 const sequelize = new Sequelize(config["development"]);
 
 const getHealth = (req, res) => {
+    client.increment('healthz');
     if (typeof req.body == 'object' && Object.keys(req.body).length !== 0) {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
