@@ -4,14 +4,12 @@ import response from '../libs/responseLib';
 import check from '../libs/checkLib';
 import logger from '../libs/loggerLib';
 import userAuthentication from '../middlewares/userAuthentication';
-import StatsD from 'node-statsd';
+import client from '../libs/statsdLib';
 
 const { Assignment } = model;
 
 const getAllAssignments = async (req, res) => {
-    const client = new StatsD();
     client.increment('getAllAssignments');
-    client.close();
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
@@ -39,9 +37,7 @@ const getAllAssignments = async (req, res) => {
 };
 
 const getAssignmentById = async (req, res) => {
-    const client = new StatsD();
     client.increment('getAssignmentById');
-    client.close();
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
@@ -77,9 +73,7 @@ const getAssignmentById = async (req, res) => {
 };
 
 let assignmentCreateFunction = async (req, res) => {
-    const client = new StatsD();
     client.increment('createAssignments');
-    client.close();
     let { name, points, num_of_attempts, deadline } = req.body;
 
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
@@ -143,9 +137,7 @@ let assignmentCreateFunction = async (req, res) => {
 }
 
 const updateAssignment = async (req, res) => {
-    const client = new StatsD();
     client.increment('updateAssignments');
-    client.close();
     let assignmentDetails;
     let assignmentId;
     let updatedDetails;
@@ -218,9 +210,7 @@ const updateAssignment = async (req, res) => {
 };
 
 const deleteAssignment = async (req, res) => {
-    const client = new StatsD();
     client.increment('deleteAssignments');
-    client.close();
     let assignmentDetails;
     let assignmentId;
     let userEmail = userAuthentication.getUserEmail(req, res);
