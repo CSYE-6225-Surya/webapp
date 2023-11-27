@@ -12,5 +12,6 @@ export default (app) => {
     app.post(baseUrl, userAuthentication.authenticate, assignmentController.createAssignment);
     app.put(`${baseUrl}/:id`, userAuthentication.authenticate, assignmentController.updateAssignment);
     app.delete(`${baseUrl}/:id`, userAuthentication.authenticate, assignmentController.deleteAssignment);
+    app.post(`${baseUrl}/:id/submission`, userAuthentication.authenticate, assignmentController.createSubmission);
     app.get('/healthz', identifyRoute, healthController.getHealth);
 }
