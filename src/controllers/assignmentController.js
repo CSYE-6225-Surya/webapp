@@ -5,8 +5,68 @@ import check from '../libs/checkLib';
 import logger from '../libs/loggerLib';
 import userAuthentication from '../middlewares/userAuthentication';
 import client from '../libs/statsdLib';
+import axios from 'axios';
+import AdmZip from 'adm-zip';
+import AWS from 'aws-sdk';
+
 
 const { Assignment } = model;
+const { Submission } = model;
+const validateZipFileUrl = async (url) => {
+    try {
+        // Download the file
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+
+        // Check if the response appears to be a valid ZIP file
+        const isValidZip = isZipFile(response.data);
+
+        if (isValidZip) {
+            console.log(`${url} is a valid URL pointing to a .zip file.`);
+            return true;
+        } else {
+            console.error(`${url} does not point to a valid .zip file.`);
+            return false;
+        }
+    } catch (error) {
+        console.error(`Error validating URL: ${error.message}`);
+        return false;
+    }
+};
+
+const isZipFile = (buffer) => {
+    try {
+        // Attempt to create an AdmZip instance with the buffer
+        const zip = new AdmZip(buffer);
+        return true;
+    } catch (error) {
+        // If an error occurs, it's not a valid ZIP file
+        return false;
+    }
+};
+
+const publishToSNS = (userEmail, url) => {
+    const sns = new AWS.SNS();
+
+    const snsArn = process.env.TOPIC_ARN; // Retrieve the SNS ARN from environment variables
+
+    const message = {
+        email: userEmail,
+        url: url,
+    };
+
+    const params = {
+        TopicArn: snsArn,
+        Message: JSON.stringify(message),
+    };
+
+    sns.publish(params, (err, data) => {
+        if (err) {
+            console.error('Error publishing to SNS:', err);
+        } else {
+            console.log('Message published to SNS:', data.MessageId);
+        }
+    });
+}
 
 const getAllAssignments = async (req, res) => {
     client.increment('getAllAssignments');
@@ -85,12 +145,12 @@ let assignmentCreateFunction = async (req, res) => {
 
     if (!name || !points || !num_of_attempts || !deadline) {
         let apiResponse = response.generate(true, 'Missing Parameters in Body', 400, null)
-        res.status(apiResponse.status).send();
+        res.status(apiResponse.status).send(apiResponse);
         return;
     }
     if (!(points > 0 && points <= 10)) {
         let apiResponse = response.generate(true, 'Points are not in range for assignment', 400, null)
-        res.status(apiResponse.status).send();
+        res.status(apiResponse.status).send(apiResponse);
         return;
     }
     let createAssignment = async () => {
@@ -131,8 +191,126 @@ let assignmentCreateFunction = async (req, res) => {
         })
         .catch((err) => {
             console.log(err);
-            res.status(err.status ? err.status : 400).send();
+            res.status(err.status ? err.status : 400).send(err);
         })
+
+}
+
+let submissionCreateFunction = async (req, res) => {
+    client.increment('createSubmissions');
+    let assignmentDetails;
+    let assignmentId;
+    let submissionDetails;
+    let { submission_url } = req.body;
+
+    if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
+
+    if (req.params.id) {
+        assignmentId = req.params.id;
+    } else {
+        let apiResponse = response.generate(true, 'Missing ID Parameter', 400, null);
+        res.status(apiResponse.status).send(apiResponse);
+        return;
+    }
+
+    if (!submission_url) {
+        let apiResponse = response.generate(true, 'Missing Parameters in Body', 400, null)
+        res.status(apiResponse.status).send(apiResponse);
+        return;
+    } else {
+        let httpRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+        let result = httpRegex.test(submission_url);
+        if (!result) {
+            let apiResponse = response.generate(true, 'Not a Valid URL', 400, null)
+            res.status(apiResponse.status).send(apiResponse);
+            return;
+        } else {
+            let urlValidationResult = await validateZipFileUrl(submission_url);
+            if (!urlValidationResult) {
+                let apiResponse = response.generate(true, 'Not a Valid URL, this doesnt download ZIP File', 400, null)
+                res.status(apiResponse.status).send(apiResponse);
+                return;
+            }
+        }
+    }
+
+    try {
+        assignmentDetails = await Assignment.findOne({ where: { id: assignmentId } });
+    } catch (err) {
+        logger.error(err.message, 'Assignment Controller: createSubmission', 10);
+        let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
+        res.status(apiResponse.status).send(apiResponse);
+        return;
+    }
+    if (!check.isEmpty(assignmentDetails)) {
+        try {
+            submissionDetails = await Submission.findAll({ where: { assignment_id: assignmentId } });
+        } catch (err) {
+            logger.error(err.message, 'Assignment Controller: createSubmission', 10);
+            let apiResponse = response.generate(true, 'Failed to find Submission Details', 400, null);
+            res.status(apiResponse.status).send(apiResponse);
+            return;
+        }
+
+        if (new Date(assignmentDetails?.deadline) < new Date()) {
+            let apiResponse = response.generate(true, 'Submission Deadline reached', 400, null);
+            res.status(apiResponse.status).send(apiResponse);
+            return;
+        }
+        if (assignmentDetails?.num_of_attempts <= submissionDetails.length) {
+            console.log('exceeded');
+            let apiResponse = response.generate(true, 'Exceeded submission count', 400, null);
+            res.status(apiResponse.status).send(apiResponse);
+            return;
+        }
+
+        let createSubmission = async () => {
+            let newSubmission;
+            return new Promise(async (resolve, reject) => {
+                if (Object.keys(req.body).length > 0) {
+                    console.log(req.body)
+                    newSubmission = {};
+                    newSubmission.id = uuidv4();
+                    newSubmission.assignment_id = assignmentId;
+                    newSubmission.submission_url = submission_url;
+                    try {
+                        await Submission.create(newSubmission);
+                    } catch (err) {
+                        console.log(err)
+                        logger.error(err.message, 'assignmentController: createSubmission', 10)
+                        let apiResponse = response.generate(true, 'Failed to create new Submission', 400, null)
+                        reject(apiResponse)
+                    }
+                    publishToSNS(assignmentDetails.userId, submission_url);
+                    resolve(newSubmission);
+                } else {
+                    logger.error('Body Not Present', 'assignmentController: createSubmission', 4)
+                    let apiResponse = response.generate(true, "Body not present", 400, null)
+                    reject(apiResponse)
+                }
+            })
+        }
+
+
+
+        createSubmission(req, res)
+            .then((resolve) => {
+                let apiResponse = response.generate(false, 'Submission Created', 201, resolve);
+                res.status(apiResponse.status).send(resolve);
+            })
+            .catch((err) => {
+                console.log(err);
+                res.status(err.status ? err.status : 400).send();
+            })
+    } else {
+        logger.info('No Assignment Found', 'Assignment Controller:createSubmission')
+        let apiResponse = response.generate(true, 'No Assignment Found', 404, null);
+        res.status(apiResponse.status).send();
+        return;
+    }
 
 }
 
@@ -266,5 +444,6 @@ export default {
     getAssignmentById: getAssignmentById,
     createAssignment: assignmentCreateFunction,
     updateAssignment: updateAssignment,
-    deleteAssignment: deleteAssignment
+    deleteAssignment: deleteAssignment,
+    createSubmission: submissionCreateFunction
 }
