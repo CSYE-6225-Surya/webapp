@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === 'workflow') {
     logFilePath = '/opt/webapp/src/logs/log-file.log';
 }
 const logger = pino({
-    level: process.env.PINO_LOG_LEVEL || 'info',
+    // level: process.env.PINO_LOG_LEVEL || 'info',
     // formatters: {
     //   level: (label) => {
     //     return { level: label.toUpperCase() };
