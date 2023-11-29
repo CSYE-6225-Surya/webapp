@@ -44,7 +44,8 @@ const isZipFile = (buffer) => {
     }
 };
 
-const publishToSNS = (userEmail, url) => {
+const publishToSNS = (userEmail, url, id, count, assignmentId) => {
+    AWS.config.update({ region: process.env.AWS_REGION });
     const sns = new AWS.SNS();
 
     const snsArn = process.env.TOPIC_ARN; // Retrieve the SNS ARN from environment variables
@@ -52,6 +53,9 @@ const publishToSNS = (userEmail, url) => {
     const message = {
         email: userEmail,
         url: url,
+        id: id,
+        count: count,
+        assignmentId: assignmentId
     };
 
     const params = {
@@ -203,6 +207,8 @@ let submissionCreateFunction = async (req, res) => {
     let submissionDetails;
     let { submission_url } = req.body;
 
+    let userEmail = userAuthentication.getUserEmail(req, res);
+
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
@@ -284,7 +290,7 @@ let submissionCreateFunction = async (req, res) => {
                         let apiResponse = response.generate(true, 'Failed to create new Submission', 400, null)
                         reject(apiResponse)
                     }
-                    publishToSNS(assignmentDetails.userId, submission_url);
+                    publishToSNS(userEmail, submission_url, newSubmission.id, submissionDetails.length + 1, assignmentDetails.id);
                     resolve(newSubmission);
                 } else {
                     logger.error('Body Not Present', 'assignmentController: createSubmission', 4)
