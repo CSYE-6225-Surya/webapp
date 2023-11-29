@@ -5,44 +5,11 @@ import check from '../libs/checkLib';
 import logger from '../libs/loggerLib';
 import userAuthentication from '../middlewares/userAuthentication';
 import client from '../libs/statsdLib';
-import axios from 'axios';
-import AdmZip from 'adm-zip';
 import AWS from 'aws-sdk';
 
 
 const { Assignment } = model;
 const { Submission } = model;
-const validateZipFileUrl = async (url) => {
-    try {
-        // Download the file
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
-
-        // Check if the response appears to be a valid ZIP file
-        const isValidZip = isZipFile(response.data);
-
-        if (isValidZip) {
-            console.log(`${url} is a valid URL pointing to a .zip file.`);
-            return true;
-        } else {
-            console.error(`${url} does not point to a valid .zip file.`);
-            return false;
-        }
-    } catch (error) {
-        console.error(`Error validating URL: ${error.message}`);
-        return false;
-    }
-};
-
-const isZipFile = (buffer) => {
-    try {
-        // Attempt to create an AdmZip instance with the buffer
-        const zip = new AdmZip(buffer);
-        return true;
-    } catch (error) {
-        // If an error occurs, it's not a valid ZIP file
-        return false;
-    }
-};
 
 const publishToSNS = (userEmail, url, id, count, assignmentId) => {
     AWS.config.update({ region: process.env.AWS_REGION });
@@ -63,18 +30,13 @@ const publishToSNS = (userEmail, url, id, count, assignmentId) => {
         Message: JSON.stringify(message),
     };
 
-    sns.publish(params, (err, data) => {
-        if (err) {
-            console.error('Error publishing to SNS:', err);
-        } else {
-            console.log('Message published to SNS:', data.MessageId);
-        }
-    });
+    return sns.publish(params).promise();
 }
 
 const getAllAssignments = async (req, res) => {
     client.increment('getAllAssignments');
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
+        logger.error("No Body Expected", "Assignment Controller: getAllAssignments", 5);
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -89,6 +51,7 @@ const getAllAssignments = async (req, res) => {
         return;
     }
     if (!check.isEmpty(assignmentDetails)) {
+        logger.info("Assignments Found", "Assignment Controller: getAllAssignments", 5);
         let apiResponse = response.generate(false, 'Assignments Found', 200, assignmentDetails);
         res.status(apiResponse.status).send(assignmentDetails);
         return;
@@ -103,6 +66,7 @@ const getAllAssignments = async (req, res) => {
 const getAssignmentById = async (req, res) => {
     client.increment('getAssignmentById');
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
+        logger.error("No Body Expected", "Assignment Controller: getAssignmentById", 5);
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -112,6 +76,7 @@ const getAssignmentById = async (req, res) => {
     if (req.params.id) {
         assignmentId = req.params.id;
     } else {
+        logger.error("Missing ID Parameter", "Assignment Controller: getAssignmentById", 5);
         let apiResponse = response.generate(true, 'Missing ID Parameter', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -125,6 +90,7 @@ const getAssignmentById = async (req, res) => {
         return;
     }
     if (!check.isEmpty(assignmentDetails)) {
+        logger.info("Assignment Details Found", "Assignment Controller: getAssignmentById", 10);
         let apiResponse = response.generate(false, 'Assignment Details Found', 200, assignmentDetails);
         res.status(apiResponse.status).send(assignmentDetails);
         return;
@@ -141,6 +107,7 @@ let assignmentCreateFunction = async (req, res) => {
     let { name, points, num_of_attempts, deadline } = req.body;
 
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
+        logger.error("Body Expected", "Assignment Controller: createAssignments", 5);
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
@@ -148,13 +115,28 @@ let assignmentCreateFunction = async (req, res) => {
     let userEmail = userAuthentication.getUserEmail(req, res);
 
     if (!name || !points || !num_of_attempts || !deadline) {
+        logger.error("Missing Parameters in Body", "Assignment Controller: createAssignments", 5);
         let apiResponse = response.generate(true, 'Missing Parameters in Body', 400, null)
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
     if (!(points > 0 && points <= 10)) {
+        logger.error("Points are not in range for assignment", "Assignment Controller: createAssignments", 5);
         let apiResponse = response.generate(true, 'Points are not in range for assignment', 400, null)
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
+        return;
+    }
+    if (new Date(deadline) != "Invalid Date") {
+        if (new Date(deadline) <= new Date()) {
+            logger.error("Deadline is not latest", "Assignment Controller: createAssignments", 5);
+            let apiResponse = response.generate(true, 'Deadline is not latest', 400, null)
+            res.status(apiResponse.status).send();
+            return;
+        }
+    } else {
+        logger.error("Invalid Date for Assignment Deadline", "Assignment Controller: createAssignments", 5);
+        let apiResponse = response.generate(true, 'Invalid Date for Assignment Deadline', 400, null)
+        res.status(apiResponse.status).send();
         return;
     }
     let createAssignment = async () => {
@@ -190,11 +172,14 @@ let assignmentCreateFunction = async (req, res) => {
 
     createAssignment(req, res)
         .then((resolve) => {
+            logger.error("Assignment Created", "Assignment Controller: createAssignments", 5);
+            delete resolve.userId;
             let apiResponse = response.generate(false, 'Assignment Created', 201, resolve);
             res.status(apiResponse.status).send(resolve);
         })
         .catch((err) => {
             console.log(err);
+            logger.error(err, "Assignment Controller: createAssignments", 5);
             res.status(err.status ? err.status : 400).send(err);
         })
 
@@ -210,6 +195,7 @@ let submissionCreateFunction = async (req, res) => {
     let userEmail = userAuthentication.getUserEmail(req, res);
 
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
+        logger.error("Body Expected", "Assignment Controller: createSubmission", 5);
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
@@ -217,30 +203,26 @@ let submissionCreateFunction = async (req, res) => {
     if (req.params.id) {
         assignmentId = req.params.id;
     } else {
+        logger.error("Missing ID Parameter", "Assignment Controller: createSubmission", 5);
         let apiResponse = response.generate(true, 'Missing ID Parameter', 400, null);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
 
     if (!submission_url) {
+        logger.error("Missing Parameters in Body", "Assignment Controller: createSubmission", 5);
         let apiResponse = response.generate(true, 'Missing Parameters in Body', 400, null)
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     } else {
         let httpRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
         let result = httpRegex.test(submission_url);
         if (!result) {
+            logger.error("Not a Valid URL", "Assignment Controller: createSubmission", 5);
             let apiResponse = response.generate(true, 'Not a Valid URL', 400, null)
-            res.status(apiResponse.status).send(apiResponse);
+            res.status(apiResponse.status).send();
             return;
-        } // else {
-        //     let urlValidationResult = await validateZipFileUrl(submission_url);
-        //     if (!urlValidationResult) {
-        //         let apiResponse = response.generate(true, 'Not a Valid URL, this doesnt download ZIP File', 400, null)
-        //         res.status(apiResponse.status).send(apiResponse);
-        //         return;
-        //     }
-        // }
+        }
     }
 
     try {
@@ -248,7 +230,7 @@ let submissionCreateFunction = async (req, res) => {
     } catch (err) {
         logger.error(err.message, 'Assignment Controller: createSubmission', 10);
         let apiResponse = response.generate(true, 'Failed to find Assignment Details', 400, null);
-        res.status(apiResponse.status).send(apiResponse);
+        res.status(apiResponse.status).send();
         return;
     }
     if (!check.isEmpty(assignmentDetails)) {
@@ -257,19 +239,20 @@ let submissionCreateFunction = async (req, res) => {
         } catch (err) {
             logger.error(err.message, 'Assignment Controller: createSubmission', 10);
             let apiResponse = response.generate(true, 'Failed to find Submission Details', 400, null);
-            res.status(apiResponse.status).send(apiResponse);
+            res.status(apiResponse.status).send();
             return;
         }
 
         if (new Date(assignmentDetails?.deadline) < new Date()) {
+            logger.error("Submission Deadline Reached", "Assignment Controller: createSubmission", 5);
             let apiResponse = response.generate(true, 'Submission Deadline reached', 400, null);
-            res.status(apiResponse.status).send(apiResponse);
+            res.status(apiResponse.status).send();
             return;
         }
         if (assignmentDetails?.num_of_attempts <= submissionDetails.length) {
-            console.log('exceeded');
+            logger.error("Exceeded Submission Count", "Assignment Controller: createSubmission", 5);
             let apiResponse = response.generate(true, 'Exceeded submission count', 400, null);
-            res.status(apiResponse.status).send(apiResponse);
+            res.status(apiResponse.status).send();
             return;
         }
 
@@ -290,8 +273,16 @@ let submissionCreateFunction = async (req, res) => {
                         let apiResponse = response.generate(true, 'Failed to create new Submission', 400, null)
                         reject(apiResponse)
                     }
-                    publishToSNS(userEmail, submission_url, newSubmission.id, submissionDetails.length + 1, assignmentDetails.id);
-                    resolve(newSubmission);
+                    try {
+                        const snsResponse = await publishToSNS(userEmail, submission_url, newSubmission.id, submissionDetails.length + 1, assignmentDetails.id);
+                        console.log(snsResponse.MessageId);
+                        logger.info(snsResponse.MessageId, "assignmentController: createSubmission", 1);
+                        resolve(newSubmission);
+                    }
+                    catch (err) {
+                        logger.error("Issue in SNS Delivery: " + err, "assignmentController: createSubmission", 10);
+                        resolve(newSubmission);
+                    }
                 } else {
                     logger.error('Body Not Present', 'assignmentController: createSubmission', 4)
                     let apiResponse = response.generate(true, "Body not present", 400, null)
@@ -304,11 +295,13 @@ let submissionCreateFunction = async (req, res) => {
 
         createSubmission(req, res)
             .then((resolve) => {
+                logger.info("Submission Created", "Assignment Controller: createSubmission", 5);
                 let apiResponse = response.generate(false, 'Submission Created', 201, resolve);
                 res.status(apiResponse.status).send(resolve);
             })
             .catch((err) => {
                 console.log(err);
+                logger.error(err, "Assignment Controller: createSubmission", 5);
                 res.status(err.status ? err.status : 400).send();
             })
     } else {
@@ -327,6 +320,7 @@ const updateAssignment = async (req, res) => {
     let updatedDetails;
     let userEmail = userAuthentication.getUserEmail(req, res);
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
+        logger.error("Body Expected", "Assignment Controller: updateAssignments", 5);
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
@@ -345,6 +339,7 @@ const updateAssignment = async (req, res) => {
         }
         if (key.toLowerCase().includes('points')) {
             if (!(req.body.points > 0 && req.body.points <= 10)) {
+                logger.error("Points are not in range to update", "Assignment Controller: updateAssignments", 5);
                 let apiResponse = response.generate(true, 'Points are not in range for assignment', 400, null)
                 res.status(apiResponse.status).send();
                 return;
@@ -354,6 +349,7 @@ const updateAssignment = async (req, res) => {
     if (req.params.id) {
         assignmentId = req.params.id;
     } else {
+        logger.error("Missing ID Parameter", "Assignment Controller: updateAssignments", 5);
         let apiResponse = response.generate(true, 'Missing ID Parameter', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -382,6 +378,7 @@ const updateAssignment = async (req, res) => {
             res.status(apiResponse.status).send();
             return;
         }
+        logger.info("Assignment Details Updated", 'Assignment Controller: editAssignment', 10);
         let apiResponse = response.generate(false, 'Assignment Details Updated', 204, updatedDetails);
         res.status(apiResponse.status).send();
         return;
@@ -399,6 +396,7 @@ const deleteAssignment = async (req, res) => {
     let assignmentId;
     let userEmail = userAuthentication.getUserEmail(req, res);
     if (req.headers['content-type'] !== undefined && req.headers['content-length'] > 0) {
+        logger.error("No Body Expected", 'Assignment Controller: deleteAssignment', 10);
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -406,6 +404,7 @@ const deleteAssignment = async (req, res) => {
     if (req.params.id) {
         assignmentId = req.params.id;
     } else {
+        logger.error("Missing ID Parameter", 'Assignment Controller: deleteAssignment', 10);
         let apiResponse = response.generate(true, 'Missing ID Parameter', 400, null);
         res.status(apiResponse.status).send();
         return;
@@ -434,6 +433,7 @@ const deleteAssignment = async (req, res) => {
             res.status(apiResponse.status).send();
             return;
         }
+        logger.error("Assignment Deleted", 'Assignment Controller: deleteAssignment', 10);
         let apiResponse = response.generate(false, 'Assignment Deleted', 204, null);
         res.status(apiResponse.status).send();
         return;
