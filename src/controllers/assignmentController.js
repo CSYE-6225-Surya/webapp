@@ -233,14 +233,14 @@ let submissionCreateFunction = async (req, res) => {
             let apiResponse = response.generate(true, 'Not a Valid URL', 400, null)
             res.status(apiResponse.status).send(apiResponse);
             return;
-        } else {
-            let urlValidationResult = await validateZipFileUrl(submission_url);
-            if (!urlValidationResult) {
-                let apiResponse = response.generate(true, 'Not a Valid URL, this doesnt download ZIP File', 400, null)
-                res.status(apiResponse.status).send(apiResponse);
-                return;
-            }
-        }
+        } // else {
+        //     let urlValidationResult = await validateZipFileUrl(submission_url);
+        //     if (!urlValidationResult) {
+        //         let apiResponse = response.generate(true, 'Not a Valid URL, this doesnt download ZIP File', 400, null)
+        //         res.status(apiResponse.status).send(apiResponse);
+        //         return;
+        //     }
+        // }
     }
 
     try {
