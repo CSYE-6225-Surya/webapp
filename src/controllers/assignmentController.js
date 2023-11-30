@@ -41,6 +41,10 @@ const getAllAssignments = async (req, res) => {
         res.status(apiResponse.status).send();
         return;
     }
+    if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
     let assignmentDetails;
     try {
         assignmentDetails = await Assignment.findAll();
@@ -69,6 +73,10 @@ const getAssignmentById = async (req, res) => {
         logger.error("No Body Expected", "Assignment Controller: getAssignmentById", 5);
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
+        return;
+    }
+    if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
     let assignmentDetails;
@@ -108,6 +116,10 @@ let assignmentCreateFunction = async (req, res) => {
 
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
         logger.error("Body Expected", "Assignment Controller: createAssignments", 5);
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
+    if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
@@ -196,6 +208,10 @@ let submissionCreateFunction = async (req, res) => {
 
     if (req.headers['content-type'] !== 'application/json' && req.headers['content-length'] == 0) {
         logger.error("Body Expected", "Assignment Controller: createSubmission", 5);
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
+    if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
@@ -324,6 +340,10 @@ const updateAssignment = async (req, res) => {
         res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
+    if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
+        return;
+    }
     Object.keys(req.body).map((key) => {
         if (key.toLowerCase().includes('assignment_created')) {
             delete req.body.assignment_created;
@@ -399,6 +419,10 @@ const deleteAssignment = async (req, res) => {
         logger.error("No Body Expected", 'Assignment Controller: deleteAssignment', 10);
         let apiResponse = response.generate(true, 'No Body Expected', 400, null);
         res.status(apiResponse.status).send();
+        return;
+    }
+    if (typeof req.query == 'object' && Object.keys(req.query).length !== 0 && Object.values(req.query).length !== 0) {
+        res.status(400).setHeader('cache-control', 'no-cache').send();
         return;
     }
     if (req.params.id) {
