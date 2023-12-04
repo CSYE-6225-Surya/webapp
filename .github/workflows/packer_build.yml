@@ -80,10 +80,11 @@ jobs:
                       aws-debian.pkr.hcl
         working-directory: ${{ github.workspace }}
 
-  launch-template-auto-scaling:
+  launch-template-auto-scaling-dev:
     if: github.event.pull_request.merged == true
-    name: Update Launch Template and Auto Scaling
+    name: Update Launch Template and Auto Scaling Dev
     runs-on: ubuntu-latest
+    needs: packer-build
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -94,18 +95,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y awscli
       
-      - name: Copy AMI ID to Github Env
+      - name: Fetch latest AMI ID
         run: |
-          AMI_ID=$(aws ec2 describe-images --owners 912764834865 --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text 2>&1)
-
-          # Check if the command was successful
-          if [ $? -eq 0 ]; then
-            echo "ami_id=$AMI_ID" >> "$GITHUB_ENV"
-          else
-            # Print the error message and exit with a non-zero status
-            echo "Error: $AMI_ID"
-            exit 1
-          fi
+          AMI_ID=$(aws ec2 describe-images --owners ${{ secrets.DEV_OWNER_ID }} --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text)
+          echo "ami_id=$AMI_ID" >> "$GITHUB_ENV"
 
       - name: Fetch Launch Template ID
         run: |
@@ -142,8 +135,59 @@ jobs:
             echo "Waiting for instance refresh to complete..."
             sleep 30
           done
-      
 
+  launch-template-auto-scaling-demo:
+    if: github.event.pull_request.merged == true
+    name: Update Launch Template and Auto Scaling Demo
+    runs-on: ubuntu-latest
+    needs: packer-build
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
+      AWS_DEFAULT_REGION: us-east-1
+    steps:
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
       
+      - name: Fetch latest AMI ID
+        run: |
+          AMI_ID=$(aws ec2 describe-images --owners ${{ secrets.DEV_OWNER_ID }} --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' --output text)
+          echo "ami_id=$AMI_ID" >> "$GITHUB_ENV"
+
+      - name: Fetch Launch Template ID
+        run: |
+          LAUNCH_TEMPLATE_ID=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[0].LaunchTemplateId' --output text)
+          echo "launch_template_id=$LAUNCH_TEMPLATE_ID" >> "$GITHUB_ENV"
       
+      - name: Fetch Auto Scaling Group Name
+        run: |
+          AUTO_SCALING_GROUP_NAME=$(aws autoscaling describe-auto-scaling-groups --query 'AutoScalingGroups[0].AutoScalingGroupName' --output text)
+          echo "auto_scaling_group_name=$AUTO_SCALING_GROUP_NAME" >> "$GITHUB_ENV"
+
+      - name: Create New Launch Template Version
+        run: |
+          aws ec2 create-launch-template-version --launch-template-id $launch_template_id --source-version 1 --launch-template-data "ImageId=$ami_id" --version-description "New Version"
       
+      - name: Fetch Latest Launch Template Version
+        run: |
+          latest_version=$(aws ec2 describe-launch-template-versions --launch-template-id $launch_template_id --versions '$Latest' --query 'LaunchTemplateVersions | sort_by(@, &VersionNumber) | [-1].VersionNumber' --output text)
+          echo "LATEST_VERSION=$latest_version" >> "$GITHUB_ENV"
+      
+      - name: Update Auto Scaling Group
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name $auto_scaling_group_name \
+            --launch-template "LaunchTemplateId=$launch_template_id,Version=$LATEST_VERSION"
+      
+      - name: Trigger Instance Refresh
+        run: |
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name $auto_scaling_group_name
+          
+          while [[ "$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name $auto_scaling_group_name --query 'InstanceRefreshes[0].Status' --output text)" != "Successful" ]];
+          do
+            echo "Waiting for instance refresh to complete..."
+            sleep 30
+          done
