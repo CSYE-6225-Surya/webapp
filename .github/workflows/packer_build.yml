@@ -92,20 +92,28 @@ jobs:
           sudo apt-get install -y awscli
       
       - name: Copy AMI ID to Github Env
-        run: echo "ami_id=$(aws ec2 describe-images --owners 912764834865 --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId'  --output text)" >> "$GITHUB_ENV"
+        run: |
+          AMI_ID=$(aws ec2 describe-images --owners 912764834865 --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId'  --output text)
+          echo "ami_id=$AMI_ID" >> "$GITHUB_ENV"
 
       - name: Fetch Launch Template ID
-        run: echo "launch_template_id=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[0].LaunchTemplateId' --output text)" >> "$GITHUB_ENV"
+        run: |
+          LAUNCH_TEMPLATE_ID=$(aws ec2 describe-launch-templates --query 'LaunchTemplates[0].LaunchTemplateId' --output text)
+          echo "launch_template_id=$LAUNCH_TEMPLATE_ID" >> "$GITHUB_ENV"
       
       - name: Fetch Auto Scaling Group Name
-        run: echo "auto_scaling_group_name=$(aws autoscaling describe-auto-scaling-groups --query 'AutoScalingGroups[0].AutoScalingGroupName' --output text)" >> "$GITHUB_ENV"
+        run: |
+          AUTO_SCALING_GROUP_NAME=$(aws autoscaling describe-auto-scaling-groups --query 'AutoScalingGroups[0].AutoScalingGroupName' --output text)
+          echo "auto_scaling_group_name=$AUTO_SCALING_GROUP_NAME" >> "$GITHUB_ENV"
 
       - name: Create New Launch Template Version
         run: |
           aws ec2 create-launch-template-version --launch-template-id $launch_template_id --source-version 1 --launch-template-data "ImageId=$ami_id" --version-description "New Version"
       
       - name: Fetch Latest Launch Template Version
-        run: echo "LATEST_VERSION=$(aws ec2 describe-launch-template-versions --launch-template-id $launch_template_id --versions '$Latest' --query 'LaunchTemplateVersions | sort_by(@, &VersionNumber) | [-1].VersionNumber' --output text)" >> "$GITHUB_ENV"
+        run: |
+          latest_version=$(aws ec2 describe-launch-template-versions --launch-template-id $launch_template_id --versions '$Latest' --query 'LaunchTemplateVersions | sort_by(@, &VersionNumber) | [-1].VersionNumber' --output text)
+          echo "LATEST_VERSION=$latest_version" >> "$GITHUB_ENV"
       
       - name: Update Auto Scaling Group
         run: |
