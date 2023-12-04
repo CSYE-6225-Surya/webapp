@@ -103,7 +103,6 @@ jobs:
             echo "Error: $AMI_ID"
             exit 1
           fi
-          echo "ami_id=$AMI_ID" >> "$GITHUB_ENV"
 
       - name: Fetch Launch Template ID
         run: |
