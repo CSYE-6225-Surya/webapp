@@ -3,7 +3,7 @@ import userAuthentication from '../middlewares/userAuthentication';
 import healthController from '../controllers/healthController';
 import identifyRoute from '../middlewares/routeIdentifier';
 
-let version = '/v1';
+let version = '/v2';
 let baseUrl = `${version}/assignments`;
 
 export default (app) => {
